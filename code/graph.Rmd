@@ -1,0 +1,115 @@
+---
+title: "Graph"
+author: "Anita"
+
+---
+
+```{r}
+library(tidyverse)
+
+# Read Towns data
+Towns <- read_csv("C:/Users/Anta/Downloads/Data Science/clean data/CleanedData_Towns.csv") %>%
+  select(shortPostcode, Town, District, County)
+
+# Read HousePrices data
+HousePrices <- read_csv("C:/Users/Anta/Downloads/Data Science/clean data/CleanedHousePrices.csv")
+
+
+
+```
+
+
+
+```{r}
+HousePricesclean <- HousePrices %>% 
+  left_join(Towns, by ="shortPostcode")  %>% 
+  na.omit()
+```
+
+
+```{r}
+# Filter for the year 2023
+HousePrices_2023 <- filter(HousePricesclean, Year == 2023)
+
+# Calculate average prices by district and county
+AveragePrices_2023 <- HousePrices_2023 %>%
+  group_by(District, County) %>%
+  summarise(AveragePrice = mean(Price, na.rm = TRUE))
+
+# Create a bar chart
+ggplot(AveragePrices_2023, aes(x = District, y = AveragePrice, fill = County)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Average House Prices by District (2023)",
+       x = "District", y = "Average Price") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(labels = scales::comma_format()) 
+  
+```
+
+
+```{r}
+# BOXPLOT Average house prices by district (2019-2021)
+HousePricesclean %>% 
+  group_by(District) %>% 
+  ggplot(aes(x = District, y = Price, fill=District)) +
+  scale_y_continuous(limits=c(0,2000000), breaks = seq(0,2000000,200000), 
+                     label = euro) +
+  geom_boxplot() +
+  coord_flip() +
+  labs(title="2020-2023 house prices by district")
+```
+
+```{r}
+
+# Calculate average prices by year
+AveragePrices_byYear <- HousePricesclean %>%
+  group_by(Year) %>%
+  summarise(AveragePrice = mean(Price, na.rm = TRUE))
+
+# Create a line graph with points and formatted labels
+ggplot(AveragePrices_byYear, aes(x = Year, y = AveragePrice)) +
+  geom_line(size = 1.5, color = "lightgrey") +
+  geom_point(size = 3, color = "steelblue") +
+  geom_text(aes(label = scales::dollar(AveragePrice, prefix = "€")), vjust = -0.85, hjust = 0.5, size = 3, color = "black") +
+  scale_y_continuous(labels = scales::dollar_format(prefix = "€"), breaks = seq(0, 300000, 5000)) +
+  labs(title = "Average House Prices Over Time (2019-2023)",
+       x = "Year", y = "Average Price") +
+  theme_minimal()
+```
+```{r}
+# Filter for specific counties 
+selected_counties <- c('GREATER MANCHESTER', 'MERSEYSIDE')
+FilteredHousePrices <- filter(HousePricesclean, County %in% selected_counties)
+
+# Create a boxplot
+ggplot(FilteredHousePrices, aes(x = County, y = Price, fill = County)) +
+  geom_boxplot() +
+  labs(title = "Distribution of House Prices by County",
+       x = "County", y = "Price") +
+  theme_minimal()
+```
+```{r}
+# Ensure Year is converted to a numeric or date format if it's not already
+HousePricesclean <- mutate(HousePricesclean, Year = as.numeric(Year))
+
+# Create a time series plot
+ggplot(HousePricesclean, aes(x = Year, y = Price, group = 1)) +
+  geom_line() +
+  labs(title = "House Prices Over Time",
+       x = "Year", y = "Price") +
+  theme_minimal()
+
+```
+```{r}
+library(ggplot2)
+
+# Assuming HousePricesclean is already read and contains the necessary data
+
+ggplot(data = HousePricesclean) +
+  geom_point(mapping = aes(x = Price, y = County)) +
+  labs(title = "Scatter Plot of House Prices by County",
+       x = "Price", y = "County", size = "District") +
+  theme_minimal()
+
+```
